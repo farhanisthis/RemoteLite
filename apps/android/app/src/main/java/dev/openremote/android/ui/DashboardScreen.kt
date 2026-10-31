@@ -38,9 +38,10 @@ fun DashboardScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { /* Navigate to QR pairing in M4 */ },
-                text = { Text("Pair New PC") }
-            )
+                onClick = { /* Navigate to QR pairing in M4 */ }
+            ) {
+                Text("Pair New PC")
+            }
         }
     ) { padding ->
         LazyColumn(

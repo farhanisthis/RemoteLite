@@ -952,6 +952,7 @@ dependencies = [
 name = "openremote-input-windows"
 version = "0.1.0"
 dependencies = [
+ "openremote-protocol",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -969,9 +970,11 @@ dependencies = [
  "openremote-encoder-windows",
  "openremote-file-transfer",
  "openremote-identity",
+ "openremote-input-windows",
  "openremote-protocol",
  "openremote-session",
  "openremote-transport",
+ "serde_json",
  "tokio",
  "uuid",
 ]
@@ -1025,6 +1028,7 @@ dependencies = [
  "openremote-protocol",
  "openremote-transport",
  "serde",
+ "serde_json",
  "thiserror 2.0.21",
  "tokio",
  "tracing",
