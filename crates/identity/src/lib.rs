@@ -18,3 +18,6 @@ pub mod store;
 
 pub use error::IdentityError;
 pub use keypair::{DeviceKeypair, PublicIdentity};
+#[cfg(windows)]
+pub use store::DpapiIdentityStore;
+pub use store::{FileIdentityStore, IdentityStore};

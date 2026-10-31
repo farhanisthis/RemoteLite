@@ -52,23 +52,30 @@ fn run_console_mode() -> Result<()> {
 }
 
 fn perform_startup_checks() {
-    use openremote_identity::keypair::DeviceKeypair;
-    use openremote_session::manager::SessionManager;
+    use openremote_host_service::{HostConfig, HostService};
 
-    // Verify identity crate is functional.
-    let keypair = DeviceKeypair::generate().expect("key generation must succeed on startup");
-    let public = keypair.public_identity();
+    // Initialize the host service state
+    let config = HostConfig::default();
+    let service = HostService::init(config).expect("Host service initialization must succeed");
+
+    info!(
+        host_device_id = %service.device_id(),
+        display_name = service.display_name(),
+        "Host service initialized with identity and authorization registry"
+    );
+
+    // Verify cryptographic self-test
     let challenge = b"startup-self-test";
-    let sig = keypair.sign(challenge).expect("signing must succeed");
-    public
+    let sig = service
+        .keypair()
+        .sign(challenge)
+        .expect("signing must succeed");
+    service
+        .keypair()
+        .public_identity()
         .verify(challenge, &sig)
         .expect("signature verification must succeed");
 
-    info!("identity self-test passed");
-
-    // Verify session manager is functional.
-    let _mgr = SessionManager::new();
-    info!("session manager initialized");
-
-    info!("startup checks complete — host service ready");
+    info!("Cryptographic identity self-test passed");
+    info!("Startup checks complete — host service ready");
 }

@@ -50,3 +50,21 @@ impl TrustedDeviceRegistry for InMemoryRegistry {
         Ok(self.devices.values().cloned().collect())
     }
 }
+
+impl<T: TrustedDeviceRegistry> TrustedDeviceRegistry for std::sync::Arc<std::sync::Mutex<T>> {
+    fn get(&self, device_id: &DeviceId) -> Result<Option<TrustedDevice>, AuthorizationError> {
+        self.lock().unwrap().get(device_id)
+    }
+
+    fn insert(&mut self, device: TrustedDevice) -> Result<(), AuthorizationError> {
+        self.lock().unwrap().insert(device)
+    }
+
+    fn remove(&mut self, device_id: &DeviceId) -> Result<bool, AuthorizationError> {
+        self.lock().unwrap().remove(device_id)
+    }
+
+    fn list(&self) -> Result<Vec<TrustedDevice>, AuthorizationError> {
+        self.lock().unwrap().list()
+    }
+}

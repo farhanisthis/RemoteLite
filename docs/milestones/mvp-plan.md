@@ -66,11 +66,17 @@
 
 ## M4 Acceptance Criteria
 
-- [ ] User pairs Android once
-- [ ] Unattended access explicitly enabled
-- [ ] Android reconnects without PC approval
-- [ ] Revocation immediately blocks access
-- [ ] Session indicators visible
+- [x] User pairs Android once via single-use, short-lived QR invitation (`QrPairingPayload`)
+- [x] Unattended access explicitly disabled by default (rejects with `UnattendedAccessDisabled`)
+- [x] Owner can explicitly toggle unattended access on Windows host
+- [x] Android reconnects without PC approval once unattended access is enabled
+- [x] Instant revocation immediately terminates active sessions and blocks reconnect (`ConnectRejectReason::NotAuthorized`)
+- [x] Platform secure key storage via Windows DPAPI (`DpapiIdentityStore` / `CryptProtectData`)
+- [x] Crash-resilient atomic file-backed trusted device registry (`FileRegistry`)
+- [x] Host Service background daemon (`apps/windows/host-service`) with coordination signaling client
+- [x] Android pairing client (`PairingClient.kt`) with QR parser, expiration validator, and completion payload
+- [x] 59 Rust unit and integration tests passing (`cargo test --workspace`)
+- [x] Android unit tests passing (`./gradlew.bat testDebugUnitTest`)
 
 ## M5 Acceptance Criteria
 

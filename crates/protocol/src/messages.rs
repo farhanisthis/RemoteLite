@@ -113,7 +113,7 @@ pub struct ConnectRejectMessage {
     pub reason: ConnectRejectReason,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ConnectRejectReason {
     NotAuthorized,
@@ -145,7 +145,7 @@ pub struct SessionEndMessage {
     pub reason: SessionEndReason,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SessionEndReason {
     UserDisconnected,

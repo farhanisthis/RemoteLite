@@ -11,8 +11,10 @@
 
 pub mod error;
 pub mod evaluator;
+pub mod file_registry;
 pub mod registry;
 
 pub use error::AuthorizationError;
 pub use evaluator::{AuthDecision, AuthorizationEvaluator};
+pub use file_registry::FileRegistry;
 pub use registry::TrustedDeviceRegistry;

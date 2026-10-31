@@ -22,9 +22,19 @@ impl SessionManager {
         }
     }
 
-    /// Create a new session record.
+    /// Create a new session record with a randomly generated session ID.
     pub fn create_session(
         &mut self,
+        host_device_id: DeviceId,
+        client_device_id: DeviceId,
+    ) -> Result<SessionId, SessionError> {
+        self.create_session_with_id(SessionId::new(), host_device_id, client_device_id)
+    }
+
+    /// Create a session record adopting an existing negotiated session ID.
+    pub fn create_session_with_id(
+        &mut self,
+        session_id: SessionId,
         host_device_id: DeviceId,
         client_device_id: DeviceId,
     ) -> Result<SessionId, SessionError> {
@@ -33,7 +43,6 @@ impl SessionManager {
             return Err(SessionError::LimitReached);
         }
 
-        let session_id = SessionId::new();
         let info = SessionInfo {
             session_id: session_id.clone(),
             host_device_id,
