@@ -1,7 +1,17 @@
 //! # OpenRemote Transport
 //!
-//! Abstract transport interface used by the session layer.
-//! Concrete implementations will use WebRTC DataChannels.
+//! Real-Time Transport Protocol (RTP), Session Description Protocol (SDP),
+//! and WebRTC media streaming for OpenRemote.
+
+pub mod rtp;
+pub mod sdp;
+pub mod streamer;
+
+pub use rtp::{packetize_h264_nalu, RtpHeader, RtpPacket, MAX_RTP_PAYLOAD_SIZE, RTP_HEADER_SIZE};
+pub use sdp::{
+    generate_h264_sdp_answer, generate_h264_sdp_offer, verify_h264_sdp, SdpSessionParams,
+};
+pub use streamer::{RtpVideoStreamer, StreamerMetrics};
 
 use bytes::Bytes;
 use thiserror::Error;
@@ -19,9 +29,6 @@ pub enum TransportError {
 }
 
 /// Abstraction over a bidirectional byte channel.
-///
-/// In production this is backed by WebRTC DataChannels.
-/// In tests it can be backed by an in-memory channel.
 #[async_trait::async_trait]
 pub trait Transport: Send + Sync {
     async fn send(&self, data: Bytes) -> Result<(), TransportError>;

@@ -965,10 +965,13 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "openremote-authorization",
+ "openremote-capture-windows",
+ "openremote-encoder-windows",
  "openremote-file-transfer",
  "openremote-identity",
  "openremote-protocol",
  "openremote-session",
+ "openremote-transport",
  "tokio",
  "uuid",
 ]
@@ -1020,6 +1023,7 @@ dependencies = [
  "openremote-input-windows",
  "openremote-observability",
  "openremote-protocol",
+ "openremote-transport",
  "serde",
  "thiserror 2.0.21",
  "tokio",

@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 openremote-protocol = { path = "../../../crates/protocol" }
+openremote-transport = { path = "../../../crates/transport" }
 openremote-observability = { path = "../../../crates/observability" }
 tokio = { workspace = true }
 serde = { workspace = true }

@@ -18,7 +18,9 @@ data class SavedHost(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(
+    onConnectHost: (String) -> Unit = {}
+) {
     val hosts = listOf(
         SavedHost("h-1", "DESKTOP-WIN11-MAIN", true, "Today at 2:15 PM"),
         SavedHost("h-2", "WORK-STATION-LAPTOP", false, "Yesterday")
@@ -56,14 +58,20 @@ fun DashboardScreen() {
                 )
             }
             items(hosts) { host ->
-                HostCard(host = host)
+                HostCard(
+                    host = host,
+                    onConnect = { onConnectHost(host.name) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun HostCard(host: SavedHost) {
+fun HostCard(
+    host: SavedHost,
+    onConnect: () -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -89,7 +97,7 @@ fun HostCard(host: SavedHost) {
                 )
             }
             Button(
-                onClick = { /* Connect session in M1 */ },
+                onClick = onConnect,
                 enabled = host.isOnline
             ) {
                 Text("Connect")

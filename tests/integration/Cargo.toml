@@ -11,6 +11,9 @@ openremote-identity = { path = "../../crates/identity" }
 openremote-authorization = { path = "../../crates/authorization" }
 openremote-session = { path = "../../crates/session" }
 openremote-file-transfer = { path = "../../crates/file-transfer" }
+openremote-transport = { path = "../../crates/transport" }
+openremote-capture-windows = { path = "../../crates/capture-windows" }
+openremote-encoder-windows = { path = "../../crates/encoder-windows" }
 chrono = { workspace = true }
 tokio = { workspace = true }
 uuid = { workspace = true }
