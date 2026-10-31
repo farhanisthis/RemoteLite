@@ -11,8 +11,10 @@
 pub mod error;
 pub mod integrity;
 pub mod path_safety;
+pub mod session;
 
 pub use error::TransferError;
+pub use session::{FileChunk, FileReceiver, FileSender, TransferProgress, TransferStatus};
 
 /// Chunk size for streaming transfers: 256 KiB.
 pub const CHUNK_SIZE: usize = 256 * 1024;

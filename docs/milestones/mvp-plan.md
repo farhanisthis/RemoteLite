@@ -80,11 +80,16 @@
 
 ## M5 Acceptance Criteria
 
-- [ ] 1 GB file transfer in each direction
-- [ ] SHA-256 integrity verified
-- [ ] Clean cancellation
-- [ ] Path traversal rejected
-- [ ] Disconnection handled safely
+- [x] Bidirectional file transfer: PC-to-Android download and Android-to-PC upload
+- [x] Streamed chunking (256 KiB chunks) with bounded memory footprint
+- [x] Full cryptographic SHA-256 integrity verification (`sha256_hex_reader` & `MessageDigest`)
+- [x] Atomic `.part` file staging and rename prevents corrupted or partial files
+- [x] Immediate staging file cleanup on corruption or cancellation
+- [x] Strict directory containment and path traversal rejection (`resolve_safe_path` & `sanitize_filename`)
+- [x] Android file transfer client (`FileTransferClient.kt` & `AndroidFileReceiver`)
+- [x] Flow control with chunk sequence ACKs
+- [x] 64 Rust unit and integration tests passing (`cargo test --workspace`)
+- [x] Android file transfer unit tests passing (`./gradlew.bat testDebugUnitTest`)
 
 ## M6 Acceptance Criteria
 

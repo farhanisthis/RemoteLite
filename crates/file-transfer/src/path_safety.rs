@@ -36,20 +36,6 @@ pub fn sanitize_filename(name: &str) -> Result<String, TransferError> {
 pub fn resolve_safe_path(base_dir: &Path, filename: &str) -> Result<PathBuf, TransferError> {
     let sanitized = sanitize_filename(filename)?;
     let candidate = base_dir.join(&sanitized);
-    // Canonicalize base_dir if it exists, otherwise use as-is
-    let base = base_dir
-        .canonicalize()
-        .unwrap_or_else(|_| base_dir.to_path_buf());
-    let resolved = candidate
-        .canonicalize()
-        .unwrap_or_else(|_| candidate.clone());
-
-    // Check for path traversal by verifying the resolved path starts with base
-    if !resolved.starts_with(&base) {
-        return Err(TransferError::PathTraversal {
-            path: resolved.to_string_lossy().into(),
-        });
-    }
 
     // Walk components to reject any .. or .
     for component in candidate.components() {
@@ -61,6 +47,26 @@ pub fn resolve_safe_path(base_dir: &Path, filename: &str) -> Result<PathBuf, Tra
             }
             _ => {}
         }
+    }
+
+    let base_canonical = base_dir
+        .canonicalize()
+        .unwrap_or_else(|_| base_dir.to_path_buf());
+    let base_str = base_canonical.to_string_lossy();
+    let clean_base = base_str.strip_prefix(r"\\?\").unwrap_or(&base_str);
+
+    let candidate_str = candidate.to_string_lossy();
+    let clean_candidate = candidate_str
+        .strip_prefix(r"\\?\")
+        .unwrap_or(&candidate_str);
+
+    let clean_base_path = Path::new(clean_base);
+    let clean_cand_path = Path::new(clean_candidate);
+
+    if !clean_cand_path.starts_with(clean_base_path) && !candidate.starts_with(base_dir) {
+        return Err(TransferError::PathTraversal {
+            path: candidate.to_string_lossy().into(),
+        });
     }
 
     Ok(candidate)
