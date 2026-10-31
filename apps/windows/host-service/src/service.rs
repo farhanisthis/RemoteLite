@@ -9,7 +9,8 @@ use openremote_authorization::registry::TrustedDeviceRegistry;
 use openremote_identity::keypair::DeviceKeypair;
 use openremote_identity::store::IdentityStore;
 use openremote_protocol::messages::{
-    ConnectRejectReason, ConnectRequestMessage, PairingCompleteMessage, SignalingMessage,
+    ConnectRejectReason, ConnectRequestMessage, PairingCompleteMessage, RemoteRebootAck,
+    RemoteRebootRequest, SignalingMessage,
 };
 use openremote_protocol::pairing::{DevicePermissions, QrPairingPayload, TrustedDevice};
 use openremote_protocol::session::SessionState;
@@ -197,6 +198,81 @@ impl HostService {
         Ok(())
     }
 
+    /// Update a specific fine-grained permission for a trusted device (e.g. "remote_reboot", "file_transfer").
+    pub fn set_device_permission(
+        &self,
+        device_id: &DeviceId,
+        permission: &str,
+        enabled: bool,
+    ) -> Result<(), HostServiceError> {
+        let mut reg = self.registry.lock().unwrap();
+        let mut device = reg.get(device_id)?.ok_or_else(|| {
+            openremote_authorization::AuthorizationError::DeviceNotFound {
+                device_id: device_id.to_string(),
+            }
+        })?;
+
+        match permission {
+            "remote_reboot" => device.permissions.remote_reboot = enabled,
+            "remote_control" => device.permissions.remote_control = enabled,
+            "file_transfer" => device.permissions.file_transfer = enabled,
+            "clipboard_sync" => device.permissions.clipboard_sync = enabled,
+            "audio_streaming" => device.permissions.audio_streaming = enabled,
+            other => {
+                return Err(HostServiceError::Internal(format!(
+                    "Unknown permission: {other}"
+                )));
+            }
+        }
+
+        reg.insert(device)?;
+        info!(
+            device_id = %device_id,
+            permission = %permission,
+            enabled = enabled,
+            "Updated device permission"
+        );
+        Ok(())
+    }
+
+    /// Process a remote reboot request from a client.
+    pub fn handle_remote_reboot(
+        &self,
+        req: &RemoteRebootRequest,
+    ) -> Result<RemoteRebootAck, HostServiceError> {
+        let evaluator = AuthorizationEvaluator::new(self.registry.clone());
+        let permitted = evaluator
+            .check_permission(&req.client_device_id, "remote_reboot")
+            .unwrap_or_default();
+
+        if !permitted {
+            warn!(
+                client_id = %req.client_device_id,
+                "Rejecting remote reboot: client lacks remote_reboot permission"
+            );
+            return Ok(RemoteRebootAck {
+                session_id: req.session_id.clone(),
+                accepted: false,
+                countdown_seconds: 0,
+                error: Some("Permission denied: remote_reboot not authorized".into()),
+            });
+        }
+
+        info!(
+            client_id = %req.client_device_id,
+            "Authorized remote reboot request accepted"
+        );
+        let countdown = 5;
+        let _ = crate::reboot::trigger_system_reboot(countdown);
+
+        Ok(RemoteRebootAck {
+            session_id: req.session_id.clone(),
+            accepted: true,
+            countdown_seconds: countdown,
+            error: None,
+        })
+    }
+
     /// Revoke a trusted device and immediately terminate any active session.
     pub fn revoke_device(&self, device_id: &DeviceId) -> Result<bool, HostServiceError> {
         let removed = {
@@ -358,6 +434,12 @@ impl HostService {
                 if let Err(e) = self.complete_pairing(pm) {
                     warn!(error = %e, "Failed to complete pairing request");
                 }
+            }
+            SignalingMessage::RemoteReboot(reboot_req) => {
+                let ack = self.handle_remote_reboot(&reboot_req)?;
+                client
+                    .send_message(SignalingMessage::RemoteRebootAck(ack))
+                    .await?;
             }
             SignalingMessage::Ping => {
                 client.send_message(SignalingMessage::Pong).await?;
@@ -530,5 +612,46 @@ mod tests {
 
         let res = host.evaluate_connect_request(&req);
         assert_eq!(res, Err(ConnectRejectReason::NotAuthorized));
+    }
+
+    #[test]
+    fn test_remote_reboot_permission_gate() {
+        let (host, _dir) = setup_test_host();
+        let client_keypair = DeviceKeypair::generate().unwrap();
+        let client_id = DeviceId::new();
+
+        let inv =
+            host.create_pairing_invitation("ws://localhost:8080/ws/signal", Duration::minutes(5));
+        let pair_complete = PairingCompleteMessage {
+            invitation_token: inv.invitation_token,
+            client_device_id: client_id.clone(),
+            client_public_key: client_keypair.public_identity().to_base64(),
+            client_display_name: "Phone".to_string(),
+            platform: Platform::Android,
+        };
+        host.complete_pairing(pair_complete).unwrap();
+        host.set_unattended_access(&client_id, true).unwrap();
+
+        let reboot_req = RemoteRebootRequest {
+            session_id: SessionId::new(),
+            client_device_id: client_id.clone(),
+            host_device_id: host.device_id(),
+            reason: Some("Update".into()),
+        };
+
+        // 1. By default, remote_reboot permission is FALSE
+        let ack = host.handle_remote_reboot(&reboot_req).unwrap();
+        assert!(!ack.accepted);
+        assert!(ack.error.is_some());
+
+        // 2. Explicitly grant remote_reboot permission
+        host.set_device_permission(&client_id, "remote_reboot", true)
+            .unwrap();
+
+        // 3. Now reboot request is accepted
+        let ack2 = host.handle_remote_reboot(&reboot_req).unwrap();
+        assert!(ack2.accepted);
+        assert_eq!(ack2.countdown_seconds, 5);
+        assert!(ack2.error.is_none());
     }
 }

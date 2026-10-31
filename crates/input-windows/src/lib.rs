@@ -12,10 +12,12 @@
 #[cfg(not(windows))]
 compile_error!("openremote-input-windows only supports Windows targets");
 
+pub mod clipboard;
 pub mod error;
 pub mod events;
 pub mod injector;
 
+pub use clipboard::WindowsClipboard;
 pub use error::InputError;
 pub use events::{
     InputEvent, KeyAction, KeyEvent, KeyModifiers, MouseAction, MouseButton, MouseEvent,

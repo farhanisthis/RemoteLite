@@ -5,8 +5,10 @@
 
 pub mod error;
 pub mod pairing;
+pub mod reboot;
 pub mod service;
 
 pub use error::HostServiceError;
 pub use pairing::PairingManager;
+pub use reboot::trigger_system_reboot;
 pub use service::{HostConfig, HostService};

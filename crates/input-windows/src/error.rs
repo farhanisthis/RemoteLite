@@ -19,4 +19,7 @@ pub enum InputError {
 
     #[error("invalid key code: {code}")]
     InvalidKeyCode { code: u32 },
+
+    #[error("clipboard error: {reason}")]
+    ClipboardError { reason: String },
 }

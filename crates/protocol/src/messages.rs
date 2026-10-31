@@ -62,6 +62,14 @@ pub enum SignalingMessage {
     PairingComplete(PairingCompleteMessage),
     /// Error response.
     Error(ErrorMessage),
+    /// Clipboard content synchronization.
+    Clipboard(ClipboardMessage),
+    /// Request remote reboot of host PC.
+    RemoteReboot(RemoteRebootRequest),
+    /// Acknowledgment of remote reboot request.
+    RemoteRebootAck(RemoteRebootAck),
+    /// Periodic real-time connection quality telemetry.
+    ConnectionQuality(ConnectionQualityMetrics),
     /// Heartbeat to keep the connection alive.
     Ping,
     /// Heartbeat response.
@@ -182,6 +190,44 @@ pub struct ErrorMessage {
     pub detail: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ClipboardMessage {
+    pub session_id: SessionId,
+    pub content_type: ClipboardContentType,
+    pub text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ClipboardContentType {
+    TextUtf8,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RemoteRebootRequest {
+    pub session_id: SessionId,
+    pub client_device_id: DeviceId,
+    pub host_device_id: DeviceId,
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RemoteRebootAck {
+    pub session_id: SessionId,
+    pub accepted: bool,
+    pub countdown_seconds: u32,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ConnectionQualityMetrics {
+    pub session_id: SessionId,
+    pub rtt_ms: u32,
+    pub bitrate_kbps: u32,
+    pub packet_loss_percent: f32,
+    pub fps: u32,
+}
+
 /// File transfer control messages sent over the DataChannel.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -282,5 +328,35 @@ mod tests {
         let d = TransferDirection::HostToClient;
         let json = serde_json::to_string(&d).unwrap();
         assert_eq!(json, r#""host_to_client""#);
+    }
+
+    #[test]
+    fn clipboard_message_serializes_correctly() {
+        let msg = ClipboardMessage {
+            session_id: SessionId::new(),
+            content_type: ClipboardContentType::TextUtf8,
+            text: "Copied across devices!".to_string(),
+        };
+        let env = Envelope::new(SignalingMessage::Clipboard(msg.clone()));
+        let json = serde_json::to_string(&env).unwrap();
+        let back: Envelope = serde_json::from_str(&json).unwrap();
+        if let SignalingMessage::Clipboard(b) = back.payload {
+            assert_eq!(b.text, "Copied across devices!");
+        } else {
+            panic!("Expected Clipboard message");
+        }
+    }
+
+    #[test]
+    fn remote_reboot_serializes_correctly() {
+        let req = RemoteRebootRequest {
+            session_id: SessionId::new(),
+            client_device_id: DeviceId::new(),
+            host_device_id: DeviceId::new(),
+            reason: Some("Scheduled update".to_string()),
+        };
+        let env = Envelope::new(SignalingMessage::RemoteReboot(req));
+        let json = serde_json::to_string(&env).unwrap();
+        assert!(json.contains("Scheduled update"));
     }
 }

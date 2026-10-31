@@ -100,3 +100,14 @@
 - [x] Performance engineering benchmarks and targets documented (`docs/benchmarks/performance.md`)
 - [x] 64 workspace Rust tests passing with 0 warnings on `-D warnings`
 - [x] Full Android Compose & unit test suite passing
+
+## M7 Acceptance Criteria (Convenience Features)
+
+- [x] Bidirectional text clipboard synchronization with echo cancellation and 1 MB payload limits
+- [x] Windows clipboard integration via safe Windows API wrapper (`WindowsClipboard`)
+- [x] Android Biometric App Unlock gate (`BiometricLock`)
+- [x] Remote reboot authorization gate (`permissions.remote_reboot`) with safe simulation default
+- [x] Android remote reboot manager (`RebootReconnectManager`) with countdown and reconnect loop
+- [x] Real-time connection quality telemetry (`ConnectionQualityMetrics`)
+- [x] 72 workspace Rust tests passing (`cargo test --workspace`)
+- [x] Android convenience unit tests passing (`./gradlew.bat testDebugUnitTest`)
