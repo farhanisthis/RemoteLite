@@ -1,0 +1,25 @@
+[package]
+name = "openremote-session-agent"
+description = "OpenRemote Windows interactive session agent"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "openremote-session-agent"
+path = "src/main.rs"
+
+[dependencies]
+openremote-protocol = { path = "../../../crates/protocol" }
+openremote-observability = { path = "../../../crates/observability" }
+tokio = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+openremote-capture-windows = { path = "../../../crates/capture-windows" }
+openremote-encoder-windows = { path = "../../../crates/encoder-windows" }
+openremote-input-windows = { path = "../../../crates/input-windows" }

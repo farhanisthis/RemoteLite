@@ -1,0 +1,67 @@
+# OpenRemote Self-Hosted Infrastructure
+# Requires: Docker Compose v2
+# See env.example for required environment variables.
+
+services:
+  coordination:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/coordination.Dockerfile
+    image: openremote/coordination:latest
+    restart: unless-stopped
+    ports:
+      - "${COORDINATION_PORT:-8080}:8080"
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - OPENREMOTE_LOG_FORMAT=json
+      - BIND_ADDR=0.0.0.0:8080
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - openremote
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-openremote}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-change-me-in-production}
+      - POSTGRES_DB=${POSTGRES_DB:-openremote}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openremote} -d ${POSTGRES_DB:-openremote}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - openremote
+
+  coturn:
+    image: coturn/coturn:4.6
+    restart: unless-stopped
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "5349:5349/tcp"
+      - "5349:5349/udp"
+      - "49152-49200:49152-49200/udp"
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    networks:
+      - openremote
+
+volumes:
+  postgres-data:
+
+networks:
+  openremote:
+    driver: bridge

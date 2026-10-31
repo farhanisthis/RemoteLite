@@ -1,0 +1,63 @@
+# Rust
+/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Node.js
+node_modules/
+dist/
+.next/
+.nuxt/
+out/
+
+# Tauri
+apps/windows/desktop-ui/src-tauri/target/
+
+# Android
+apps/android/.gradle/
+apps/android/local.properties
+apps/android/app/build/
+apps/android/.idea/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secrets (never commit)
+*.pem
+*.key
+*.p12
+secrets/
+
+# Build artifacts
+*.o
+*.so
+*.dll
+*.dylib
+*.exe
+
+# Logs
+*.log
+logs/
+
+# Docker volumes
+infrastructure/postgres-data/
+
+# OS
+.DS_Store
+ehthumbs.db
+Desktop.ini

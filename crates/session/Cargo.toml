@@ -1,0 +1,18 @@
+[package]
+name = "openremote-session"
+description = "Session lifecycle management for OpenRemote"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+openremote-protocol = { path = "../protocol" }
+openremote-authorization = { path = "../authorization" }
+openremote-observability = { path = "../observability" }
+tokio = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }

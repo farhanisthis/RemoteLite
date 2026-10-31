@@ -1,0 +1,16 @@
+[package]
+name = "openremote-integration-tests"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dev-dependencies]
+openremote-protocol = { path = "../../crates/protocol" }
+openremote-identity = { path = "../../crates/identity" }
+openremote-authorization = { path = "../../crates/authorization" }
+openremote-session = { path = "../../crates/session" }
+openremote-file-transfer = { path = "../../crates/file-transfer" }
+chrono = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }

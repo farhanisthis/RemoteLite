@@ -1,0 +1,29 @@
+[package]
+name = "openremote-host-service"
+description = "OpenRemote Windows background host service"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "openremote-host-service"
+path = "src/main.rs"
+
+[dependencies]
+openremote-protocol = { path = "../../../crates/protocol" }
+openremote-identity = { path = "../../../crates/identity" }
+openremote-authorization = { path = "../../../crates/authorization" }
+openremote-session = { path = "../../../crates/session" }
+openremote-observability = { path = "../../../crates/observability" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+windows-service = "0.7"

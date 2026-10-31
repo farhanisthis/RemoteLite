@@ -1,0 +1,17 @@
+[package]
+name = "openremote-transport"
+description = "Transport abstraction for OpenRemote sessions"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+openremote-protocol = { path = "../protocol" }
+tokio = { workspace = true }
+futures = { workspace = true }
+bytes = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-trait = { workspace = true }
