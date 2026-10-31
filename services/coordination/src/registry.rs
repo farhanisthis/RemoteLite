@@ -6,6 +6,7 @@
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
+#[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub struct DeviceRecord {
     pub device_id: String,

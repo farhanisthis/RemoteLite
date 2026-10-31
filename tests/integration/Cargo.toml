@@ -12,9 +12,11 @@ openremote-authorization = { path = "../../crates/authorization" }
 openremote-session = { path = "../../crates/session" }
 openremote-file-transfer = { path = "../../crates/file-transfer" }
 openremote-transport = { path = "../../crates/transport" }
+openremote-coordination = { path = "../../services/coordination" }
 openremote-capture-windows = { path = "../../crates/capture-windows" }
 openremote-encoder-windows = { path = "../../crates/encoder-windows" }
 openremote-input-windows = { path = "../../crates/input-windows" }
+axum = { workspace = true }
 chrono = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }

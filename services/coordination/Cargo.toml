@@ -6,6 +6,10 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[lib]
+name = "openremote_coordination"
+path = "src/lib.rs"
+
 [[bin]]
 name = "openremote-coordination"
 path = "src/main.rs"

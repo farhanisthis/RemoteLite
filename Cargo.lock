@@ -964,9 +964,11 @@ dependencies = [
 name = "openremote-integration-tests"
 version = "0.1.0"
 dependencies = [
+ "axum",
  "chrono",
  "openremote-authorization",
  "openremote-capture-windows",
+ "openremote-coordination",
  "openremote-encoder-windows",
  "openremote-file-transfer",
  "openremote-identity",
@@ -1042,9 +1044,12 @@ dependencies = [
  "bytes",
  "futures",
  "openremote-protocol",
+ "rand",
  "serde",
+ "serde_json",
  "thiserror 2.0.21",
  "tokio",
+ "tokio-tungstenite",
  "tracing",
 ]
 

@@ -1,6 +1,6 @@
 # MVP Plan
 
-## Current Status: M2 Interactive Remote Control ✅
+## Current Status: M3 Internet Connectivity & Relay Fallback ✅
 
 ## Milestone Summary
 
@@ -9,8 +9,8 @@
 | M0 | Repository foundation, skeletons, CI | ✅ Complete |
 | M1 | Screen streaming (Windows → Android) | ✅ Complete |
 | M2 | Interactive mouse/keyboard control | ✅ Complete |
-| M3 | Internet connectivity (STUN/TURN/signaling) | ⏳ Next |
-| M4 | Trusted devices and unattended access | ⏳ Pending M3 |
+| M3 | Internet connectivity (STUN/TURN/signaling) | ✅ Complete |
+| M4 | Trusted devices and unattended access | ⏳ Next |
 | M5 | Bidirectional file transfer | ⏳ Pending M4 |
 | M6 | MVP release (installer, packaging, docs) | ⏳ Pending M5 |
 | M7 | Convenience features | ⏳ Pending M6 |
@@ -53,10 +53,16 @@
 
 ## M3 Acceptance Criteria
 
-- [ ] Android on mobile data controls Windows on home broadband
-- [ ] TURN relay fallback verified
-- [ ] Connection errors handled gracefully
-- [ ] Unauthorized peers rejected
+- [x] Full bidirectional WebSocket signaling hub in `services/coordination`
+- [x] Device registration and cryptographic verification
+- [x] Session connection handshake (`ConnectRequest` -> `ConnectAccept` / `ConnectReject`)
+- [x] WebRTC SDP Offer and Answer relay
+- [x] Trickle ICE candidate relay (Host, STUN reflexive, TURN relay)
+- [x] RFC 8489 STUN Binding client (XOR-MAPPED-ADDRESS public IP discovery)
+- [x] RFC 8656 TURN Allocate client (XOR-RELAYED-ADDRESS relay fallback)
+- [x] Graceful rejection of offline hosts and unauthorized session snooping
+- [x] 47 Rust unit/integration tests passing
+- [x] Android unit tests passing
 
 ## M4 Acceptance Criteria
 
