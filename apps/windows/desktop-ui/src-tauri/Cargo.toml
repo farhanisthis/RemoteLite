@@ -17,3 +17,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 openremote-protocol = { path = "../../../../crates/protocol" }
 openremote-identity = { path = "../../../../crates/identity" }
+openremote-authorization = { path = "../../../../crates/authorization" }
+openremote-host-service = { path = "../../host-service" }
+chrono = "0.4"
+tokio = { version = "1.40", features = ["full"] }
+uuid = { version = "1.10", features = ["v4"] }
+base64 = "0.22"

@@ -117,6 +117,11 @@ impl HostService {
         self.keypair.clone()
     }
 
+    /// Reference to the trusted device registry.
+    pub fn registry(&self) -> Arc<Mutex<FileRegistry>> {
+        self.registry.clone()
+    }
+
     /// Create a new QR pairing invitation.
     pub fn create_pairing_invitation(
         &self,
