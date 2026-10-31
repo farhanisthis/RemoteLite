@@ -53,15 +53,23 @@ class MainActivity : ComponentActivity() {
     private fun sendInputToHost(serverUrl: String, event: InputEvent) {
         scope.launch {
             try {
-                val host = serverUrl.removePrefix("ws://")
+                var trimmed = serverUrl.trim()
+                val isHttps = trimmed.startsWith("wss://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)
+                trimmed = trimmed.removePrefix("ws://")
                     .removePrefix("wss://")
                     .removePrefix("http://")
                     .removePrefix("https://")
-                    .split("/")[0]
-                    .split(":")[0]
+                    .trimEnd('/')
 
-                val targetHost = if (host.isNotBlank()) host else "10.0.2.2"
-                val url = URL("http://$targetHost:3000/api/input")
+                val hostPort = trimmed.split("/")[0]
+                val scheme = if (isHttps) "https" else "http"
+                val finalUrl = if (hostPort.contains(":") || isHttps) {
+                    "$scheme://$hostPort/api/input"
+                } else {
+                    "$scheme://$hostPort:3000/api/input"
+                }
+
+                val url = URL(finalUrl)
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")

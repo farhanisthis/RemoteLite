@@ -63,15 +63,23 @@ fun RemoteDesktopViewer(
 
     // Live frame receiver coroutine
     LaunchedEffect(serverUrl) {
-        val host = serverUrl.removePrefix("ws://")
+        var trimmed = serverUrl.trim()
+        val isHttps = trimmed.startsWith("wss://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)
+        trimmed = trimmed.removePrefix("ws://")
             .removePrefix("wss://")
             .removePrefix("http://")
             .removePrefix("https://")
-            .split("/")[0]
-            .split(":")[0]
+            .trimEnd('/')
 
-        val targetHost = if (host.isNotBlank()) host else "10.0.2.2"
-        val frameUrl = URL("http://$targetHost:3000/frame")
+        val hostPort = trimmed.split("/")[0]
+        val scheme = if (isHttps) "https" else "http"
+        val finalUrl = if (hostPort.contains(":") || isHttps) {
+            "$scheme://$hostPort/frame"
+        } else {
+            "$scheme://$hostPort:3000/frame"
+        }
+
+        val frameUrl = URL(finalUrl)
 
         withContext(Dispatchers.IO) {
             var framesReceived = 0L
@@ -121,7 +129,7 @@ fun RemoteDesktopViewer(
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         if (currentFrame == null) {
-                            connectionError = "Connecting to $targetHost:3000..."
+                            connectionError = "Connecting to $finalUrl..."
                         }
                     }
                     delay(300)
