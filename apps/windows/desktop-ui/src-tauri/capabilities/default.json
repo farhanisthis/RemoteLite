@@ -1,0 +1,9 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for OpenRemote desktop app",
+  "windows": ["*"],
+  "permissions": [
+    "core:default"
+  ]
+}
