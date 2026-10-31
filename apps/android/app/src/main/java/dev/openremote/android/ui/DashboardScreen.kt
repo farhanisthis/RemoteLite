@@ -1,6 +1,7 @@
 package dev.openremote.android.ui
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -60,9 +61,6 @@ fun DashboardScreen(
                     }
                 } catch (_: Exception) {}
             }
-            if (isEmpty()) {
-                add(SavedHost("h-default", "Windows PC (Local)", "ws://10.0.2.2:3000/ws", isOnline = true, lastConnected = "Ready to connect"))
-            }
         }
     }
 
@@ -93,7 +91,7 @@ fun DashboardScreen(
                 title = {
                     Column {
                         Text("OpenRemote", style = MaterialTheme.typography.titleLarge)
-                        Text("Personal Remote Desktop", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        Text("v0.2.0 • Personal Remote Desktop", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -114,7 +112,7 @@ fun DashboardScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Text("+ Pair New PC")
+                Text("➕ Pair New PC")
             }
         }
     ) { padding ->
@@ -125,28 +123,88 @@ fun DashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            // Pair PC Action Banner
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Connect Your Computer",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = "Scan the QR code or enter your PC's IP address from the OpenRemote desktop app.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f),
+                            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                        )
+                        Button(
+                            onClick = {
+                                errorMessage = null
+                                invitationInput = ""
+                                manualHostName = ""
+                                manualIp = ""
+                                showPairDialog = true
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text("➕ Pair New Computer")
+                        }
+                    }
+                }
+            }
+
             item {
                 Text(
-                    text = "Paired Computers (${savedHosts.size})",
+                    text = "Saved Computers (${savedHosts.size})",
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(
-                    text = "Select an authorized computer to start remote control.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.outline
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
             }
 
-            items(savedHosts) { host ->
-                HostCard(
-                    host = host,
-                    onConnect = { onConnectHost(host.name) },
-                    onDelete = {
-                        savedHosts.remove(host)
-                        persistHosts()
+            if (savedHosts.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("No Computers Paired Yet", style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                "Tap '+ Pair New Computer' above to add your Windows PC.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
                     }
-                )
+                }
+            } else {
+                items(savedHosts) { host ->
+                    HostCard(
+                        host = host,
+                        onConnect = { onConnectHost(host.name) },
+                        onDelete = {
+                            savedHosts.remove(host)
+                            persistHosts()
+                            Toast.makeText(context, "Removed ${host.name}", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
             }
         }
     }
@@ -203,7 +261,7 @@ fun DashboardScreen(
                         }
                     } else {
                         Text(
-                            text = "Enter your PC's computer name and local network IP address (e.g. from the OpenRemote desktop app dashboard):",
+                            text = "Enter your PC's name and LAN IP address from the OpenRemote desktop app:",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.outline
                         )
@@ -212,15 +270,15 @@ fun DashboardScreen(
                             value = manualHostName,
                             onValueChange = { manualHostName = it },
                             label = { Text("Computer Name") },
-                            placeholder = { Text("e.g. DESKTOP-WIN11") },
+                            placeholder = { Text("e.g. My-Windows-PC") },
                             modifier = Modifier.fillMaxWidth()
                         )
 
                         OutlinedTextField(
                             value = manualIp,
                             onValueChange = { manualIp = it },
-                            label = { Text("PC LAN IP or Signaling URL") },
-                            placeholder = { Text("e.g. 192.168.1.100 or ws://192.168.1.100:3000/ws") },
+                            label = { Text("PC LAN IP") },
+                            placeholder = { Text("e.g. 192.168.1.50") },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -256,6 +314,7 @@ fun DashboardScreen(
                                 savedHosts.removeAll { it.id == newHost.id }
                                 savedHosts.add(0, newHost)
                                 persistHosts()
+                                Toast.makeText(context, "Successfully paired with ${newHost.name}!", Toast.LENGTH_SHORT).show()
                                 showPairDialog = false
                             } else {
                                 if (manualHostName.isBlank()) {
@@ -276,10 +335,11 @@ fun DashboardScreen(
                                     name = manualHostName.trim(),
                                     serverUrl = formattedUrl,
                                     isOnline = true,
-                                    lastConnected = "Added manually ($nowFormatted)"
+                                    lastConnected = "Added on $nowFormatted"
                                 )
                                 savedHosts.add(0, newHost)
                                 persistHosts()
+                                Toast.makeText(context, "Added ${newHost.name}!", Toast.LENGTH_SHORT).show()
                                 showPairDialog = false
                             }
                         } catch (e: Exception) {
@@ -327,7 +387,7 @@ fun HostCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "● Online • ${host.serverUrl}",
+                        text = "● Ready • ${host.serverUrl}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF22C55E)
                     )
