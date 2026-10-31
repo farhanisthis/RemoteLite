@@ -8,10 +8,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import dev.openremote.android.input.InputEvent
 import dev.openremote.android.ui.DashboardScreen
 import dev.openremote.android.ui.RemoteDesktopViewer
+import dev.openremote.android.ui.SavedHost
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : ComponentActivity() {
+    private val scope = CoroutineScope(Dispatchers.IO)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -20,19 +29,52 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    var activeSessionHost by remember { mutableStateOf<String?>(null) }
+                    var activeHost by remember { mutableStateOf<SavedHost?>(null) }
 
-                    if (activeSessionHost != null) {
+                    if (activeHost != null) {
                         RemoteDesktopViewer(
-                            hostName = activeSessionHost!!,
-                            onDisconnect = { activeSessionHost = null }
+                            hostName = activeHost!!.name,
+                            serverUrl = activeHost!!.serverUrl,
+                            onDisconnect = { activeHost = null },
+                            onSendInput = { event ->
+                                sendInputToHost(activeHost!!.serverUrl, event)
+                            }
                         )
                     } else {
                         DashboardScreen(
-                            onConnectHost = { hostName -> activeSessionHost = hostName }
+                            onConnectHost = { host -> activeHost = host }
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun sendInputToHost(serverUrl: String, event: InputEvent) {
+        scope.launch {
+            try {
+                val host = serverUrl.removePrefix("ws://")
+                    .removePrefix("wss://")
+                    .removePrefix("http://")
+                    .removePrefix("https://")
+                    .split("/")[0]
+                    .split(":")[0]
+
+                val targetHost = if (host.isNotBlank()) host else "10.0.2.2"
+                val url = URL("http://$targetHost:3000/api/input")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json; charset=utf-8")
+                conn.doOutput = true
+                conn.connectTimeout = 400
+                conn.readTimeout = 400
+                conn.outputStream.use { os ->
+                    os.write(event.toJsonString().toByteArray(Charsets.UTF_8))
+                }
+                conn.responseCode
+                conn.disconnect()
+            } catch (_: Exception) {
+                // Ignore transient network drops
             }
         }
     }

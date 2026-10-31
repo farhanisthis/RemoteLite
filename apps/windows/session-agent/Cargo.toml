@@ -20,6 +20,9 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
+axum = { workspace = true }
+tower-http = { workspace = true, features = ["cors"] }
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
 
 [target.'cfg(windows)'.dependencies]
 openremote-capture-windows = { path = "../../../crates/capture-windows" }

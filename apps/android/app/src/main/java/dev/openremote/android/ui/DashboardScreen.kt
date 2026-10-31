@@ -33,7 +33,7 @@ data class SavedHost(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    onConnectHost: (String) -> Unit = {}
+    onConnectHost: (SavedHost) -> Unit = {}
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -197,7 +197,7 @@ fun DashboardScreen(
                 items(savedHosts) { host ->
                     HostCard(
                         host = host,
-                        onConnect = { onConnectHost(host.name) },
+                        onConnect = { onConnectHost(host) },
                         onDelete = {
                             savedHosts.remove(host)
                             persistHosts()
