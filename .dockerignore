@@ -1,0 +1,6 @@
+target/
+**/target/
+release/
+.git
+.github
+*.exe

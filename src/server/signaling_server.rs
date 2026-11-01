@@ -37,10 +37,23 @@ pub async fn run_signaling_server(bind_addr: &str) -> Result<()> {
 }
 
 async fn handle_connection(
-    stream: TcpStream,
+    mut stream: TcpStream,
     peer_addr: SocketAddr,
     registry: Arc<DeviceRegistry>,
 ) -> Result<()> {
+    // Peek incoming bytes to detect HTTP health checks (e.g. Render / Cloud GET / health check)
+    let mut peek_buf = [0u8; 1024];
+    let n = stream.peek(&mut peek_buf).await.unwrap_or(0);
+    let peek_str = String::from_utf8_lossy(&peek_buf[..n]);
+
+    if !peek_str.to_lowercase().contains("upgrade: websocket") && (peek_str.starts_with("GET ") || peek_str.starts_with("HEAD ")) {
+        use tokio::io::AsyncWriteExt;
+        let response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 35\r\nConnection: close\r\n\r\nRemoteLite Signaling Server Active\n";
+        let _ = stream.write_all(response.as_bytes()).await;
+        let _ = stream.flush().await;
+        return Ok(());
+    }
+
     let ws_stream = tokio_tungstenite::accept_async(stream)
         .await
         .context("WebSocket handshake error")?;
