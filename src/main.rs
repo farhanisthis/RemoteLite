@@ -22,7 +22,7 @@ fn main() -> Result<()> {
             .map(|s| s.as_str())
             .unwrap_or("0.0.0.0:9090");
         
-        println!("Starting RemoteLite Signaling & Relay Server on {}...", bind_addr);
+        println!("Starting InstantLink Signaling & Relay Server on {}...", bind_addr);
         let rt = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()?;
@@ -41,9 +41,9 @@ fn main() -> Result<()> {
     tracing::info!("Loaded device configuration with ID: {}", config.device_id);
 
     let viewport = egui::ViewportBuilder::default()
-        .with_title("RemoteLite")
-        .with_inner_size([780.0, 520.0])
-        .with_min_inner_size([640.0, 440.0]);
+        .with_title("InstantLink")
+        .with_inner_size([1040.0, 680.0])
+        .with_min_inner_size([920.0, 600.0]);
 
     let native_options = eframe::NativeOptions {
         viewport,
@@ -51,12 +51,12 @@ fn main() -> Result<()> {
     };
 
     eframe::run_native(
-        "RemoteLite",
+        "InstantLink",
         native_options,
         Box::new(|cc| {
             let mut visuals = egui::Visuals::dark();
-            visuals.window_rounding = 8.0.into();
-            visuals.panel_fill = egui::Color32::from_rgb(20, 24, 30);
+            visuals.window_rounding = 12.0.into();
+            visuals.panel_fill = egui::Color32::from_rgb(11, 35, 38);
             cc.egui_ctx.set_visuals(visuals);
 
             Ok(Box::new(RemoteLiteApp::new(cc, config)))
