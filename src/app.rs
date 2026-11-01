@@ -37,10 +37,15 @@ pub struct RemoteLiteApp {
     remote_resolution: (u32, u32),
     latency_ms: u64,
     last_mouse_norm: Option<(f32, f32)>,
+
+    // Server configuration panel
+    show_settings: bool,
+    server_url_input: String,
 }
 
 impl RemoteLiteApp {
     pub fn new(_cc: &eframe::CreationContext<'_>, config: AppConfig) -> Self {
+        let server_url_input = config.signaling_server_url.clone();
         let (signaling, events_rx) = SignalingClient::connect(
             config.signaling_server_url.clone(),
             config.device_id.as_str().to_string(),
@@ -62,6 +67,8 @@ impl RemoteLiteApp {
             remote_resolution: (1920, 1080),
             latency_ms: 0,
             last_mouse_norm: None,
+            show_settings: false,
+            server_url_input,
         }
     }
 
@@ -396,6 +403,12 @@ impl RemoteLiteApp {
                 );
 
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if ui.button(if self.show_settings { "✖ Close" } else { "⚙ Settings" }).clicked() {
+                        self.show_settings = !self.show_settings;
+                    }
+
+                    ui.add_space(8.0);
+
                     if self.is_online {
                         ui.label(RichText::new("● Online").color(Color32::from_rgb(60, 200, 90)).strong());
                     } else {
@@ -403,6 +416,52 @@ impl RemoteLiteApp {
                     }
                 });
             });
+
+            // Collapsible Settings Panel
+            if self.show_settings {
+                ui.add_space(6.0);
+                egui::Frame::none()
+                    .fill(Color32::from_rgb(28, 34, 44))
+                    .stroke(Stroke::new(1.0_f32, Color32::from_rgb(60, 80, 110)))
+                    .rounding(8.0)
+                    .inner_margin(12.0)
+                    .show(ui, |ui| {
+                        ui.label(RichText::new("Relay & Signaling Server Configuration").strong());
+                        ui.label(
+                            RichText::new("Connect across different networks by entering your public server (e.g. Render, Railway, or VPS):")
+                                .small()
+                                .color(Color32::from_rgb(160, 170, 180)),
+                        );
+                        ui.add_space(6.0);
+
+                        ui.horizontal(|ui| {
+                            ui.label("URL:");
+                            ui.add_sized(
+                                [ui.available_width() - 140.0, 28.0],
+                                egui::TextEdit::singleline(&mut self.server_url_input)
+                                    .hint_text("wss://your-service.onrender.com"),
+                            );
+
+                            if ui.add_sized([120.0, 28.0], egui::Button::new(RichText::new("Save & Connect").strong())).clicked() {
+                                let new_url = self.server_url_input.trim().to_string();
+                                if !new_url.is_empty() {
+                                    self.config.signaling_server_url = new_url.clone();
+                                    let _ = self.config.save();
+
+                                    let (signaling, events_rx) = SignalingClient::connect(
+                                        new_url.clone(),
+                                        self.config.device_id.as_str().to_string(),
+                                    );
+                                    self.signaling = signaling;
+                                    self.events_rx = events_rx;
+                                    self.is_online = false;
+                                    self.connect_status = Some(format!("Connecting to {}", new_url));
+                                    self.show_settings = false;
+                                }
+                            }
+                        });
+                    });
+            }
 
             ui.separator();
             ui.add_space(10.0);

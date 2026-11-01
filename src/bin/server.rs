@@ -12,11 +12,15 @@ async fn main() -> Result<()> {
         .init();
 
     let args: Vec<String> = env::args().collect();
-    let bind_addr = args
-        .get(1)
-        .map(|s| s.as_str())
-        .unwrap_or("0.0.0.0:9090");
+    // Render provides the port in the PORT environment variable
+    let bind_addr = env::var("PORT")
+        .map(|p| format!("0.0.0.0:{}", p))
+        .unwrap_or_else(|_| {
+            args.get(1)
+                .cloned()
+                .unwrap_or_else(|| "0.0.0.0:9090".to_string())
+        });
 
     println!("Starting RemoteLite Standalone Server on {}...", bind_addr);
-    run_signaling_server(bind_addr).await
+    run_signaling_server(&bind_addr).await
 }
